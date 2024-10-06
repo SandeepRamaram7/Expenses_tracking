@@ -9,11 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -23,12 +21,15 @@ public class TransactionService {
     private TransactionRepositary transactionRepository;
 
     public Transactions saveTransaction(TansactionsDTO transaction) {
+        Transactions latestTransaction = transactionRepository.findFirstByOrderByIdDesc();
+        double existingBalance = latestTransaction != null ? latestTransaction.getBalance() : 0;
         Transactions tran = new Transactions();
         tran.setCredit(transaction.getCredit());
         tran.setDate(transaction.getDate());
         tran.setDebit(transaction.getDebit());
         tran.setType(transaction.getType());
         tran.setId(transaction.getId());
+        tran.setBalance(existingBalance + transaction.getCredit() - transaction.getDebit());
 
         return transactionRepository.save(tran);
 
@@ -52,8 +53,10 @@ public class TransactionService {
                 .distinct()
                 .toList();
 
+        double existingBalance = getBalance();
 
-        return Map.of("credit", creditTotal, "debit", debitTotal, "types", types);
+
+        return Map.of("credit", creditTotal, "debit", debitTotal, "types", types,"Balance",existingBalance);
     }
 
     public Map<String, Double> getMonthlyTotals(@RequestParam String month) {
@@ -61,16 +64,18 @@ public class TransactionService {
 
         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("MM-yyyy");
         LocalDate monthStart;
+        LocalDate monthEnd;
 
         try {
             // Parse the month and year and set the day to 1
             monthStart = LocalDate.parse(month + "-01", DateTimeFormatter.ofPattern("MM-yyyy-dd"));
+            monthEnd = monthStart.plusMonths(1).minusDays(1);
         } catch (DateTimeParseException e) {
             System.err.println("Invalid date format: " + e.getMessage());
             return Map.of("credit", 0.0, "debit", 0.0);
         }
 
-        LocalDate monthEnd = monthStart.plusMonths(1).minusDays(1);
+
 
         // Format dates in "dd-MM-yyyy"
         String monthStartstr = monthStart.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
@@ -93,7 +98,14 @@ public class TransactionService {
                 .mapToDouble(transaction -> transaction.getDebit())
                 .sum();
 
-        return Map.of("credit", creditTotal, "debit", debitTotal);
+        Double existingBalance = getBalance();
+
+        return Map.of("credit", creditTotal, "debit", debitTotal,"Balance",existingBalance);
+    }
+    public Double getBalance(){
+        Transactions latestTransaction = transactionRepository.findFirstByOrderByIdDesc();
+        double existingBalance = latestTransaction != null ? latestTransaction.getBalance() : 0;
+        return existingBalance;
     }
 }
 

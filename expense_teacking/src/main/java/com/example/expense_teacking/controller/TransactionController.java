@@ -27,4 +27,8 @@ public class TransactionController {
     public Map<String, Double> getTransactionByMonth(@PathVariable String date){
         return transactionService.getMonthlyTotals(date);
     }
+    @GetMapping("/get/Balance")
+    public Double getBalance(){
+        return transactionService.getBalance();
+    }
 }

@@ -11,4 +11,6 @@ import java.util.List;
 public interface TransactionRepositary extends JpaRepository<Transactions, Long>{
 
     List<Transactions> findByDate(String date);
+
+    List<Transactions> findByDateBetween(String monthStart, String monthEnd);
 }

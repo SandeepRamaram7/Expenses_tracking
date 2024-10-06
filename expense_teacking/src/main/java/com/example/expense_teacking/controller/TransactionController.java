@@ -16,11 +16,15 @@ public class TransactionController {
     @Autowired
     private TransactionService transactionService;
     @PostMapping("/add")
-    public String addTransaction(@RequestBody TansactionsDTO transaction){
+    public Transactions addTransaction(@RequestBody TansactionsDTO transaction){
         return transactionService.saveTransaction(transaction);
     }
     @GetMapping("/get/{date}")
     public Map<String, Object> getTransactionByDate(@PathVariable String date){
         return transactionService.getTransactionByDate(date);
+    }
+    @GetMapping("/get/month/{date}")
+    public Map<String, Double> getTransactionByMonth(@PathVariable String date){
+        return transactionService.getMonthlyTotals(date);
     }
 }

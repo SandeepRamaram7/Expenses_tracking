@@ -1,5 +1,5 @@
 server:
-  port: 2240
+  port: 2242
 spring:
   application:
     name: Employee-jpastreamer
